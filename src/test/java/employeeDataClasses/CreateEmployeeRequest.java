@@ -1,4 +1,4 @@
-package dataClasses;
+package employeeDataClasses;
 
 import java.util.Objects;
 

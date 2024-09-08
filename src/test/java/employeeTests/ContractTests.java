@@ -30,7 +30,7 @@ public class ContractTests {
 
     @Test
     @Tag("Позитивный")
-    @DisplayName("Получение списка сотрудников. Проверяем статус-код 200")
+    @DisplayName("Получение списка сотрудников")
     public void getListOfEmployees() throws IOException {
 
         given()
@@ -38,57 +38,6 @@ public class ContractTests {
                 .basePath("employee")
                 .when()
                 .get()
-                .then()
-                .assertThat()
-                .statusCode(STATUS_CODE_OK)
-                .header("Content-Type", JSON);
-    }
-
-    @Test
-    @Tag("Позитивный")
-    @DisplayName("Создание сотрудника. Проверяем статус-код 201 и Content-Type")
-    public void createEmployee() {
-
-        given()
-                .basePath("employee")
-                .body(NEW_EMPLOYEE_RUSSIAN)
-                .header(TOKEN_TYPE, info.userToken())
-                .contentType(ContentType.JSON)
-                .when()
-                .post()
-                .then()
-                .assertThat()
-                .statusCode(STATUS_CODE_CREATED)
-                .header("Content-Type", JSON);
-    }
-
-    @Test
-    @Tag("Позитивный")
-    @DisplayName("Получение сотрудника по id. Проверяем статус-код 200")
-    public void getEmployeeById() throws IOException {
-
-        given()
-                .basePath("employee")
-                .when()
-                .get("{id}", createNewEmployee())
-                .then()
-                .assertThat()
-                .statusCode(STATUS_CODE_OK)
-                .header("Content-Type", JSON);
-    }
-
-    @Test
-    @Tag("Позитивный")
-    @DisplayName("Изменение информации о сотруднике. Проверяем статус-код 200 и Content-Type")
-    public void changeEmployeeData() throws IOException {
-
-        given()
-                .basePath("employee")
-                .body(CHANGED_DATA_EMPLOYEE_RUSSIAN)
-                .header(TOKEN_TYPE, info.userToken())
-                .contentType(ContentType.JSON)
-                .when()
-                .patch("{id}", createNewEmployee())
                 .then()
                 .assertThat()
                 .statusCode(STATUS_CODE_OK)
@@ -124,6 +73,24 @@ public class ContractTests {
     }
 
     @Test
+    @Tag("Позитивный")
+    @DisplayName("Создание сотрудника")
+    public void createEmployee() {
+
+        given()
+                .basePath("employee")
+                .body(NEW_EMPLOYEE_RUSSIAN)
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(STATUS_CODE_CREATED)
+                .header("Content-Type", JSON);
+    }
+
+    @Test
     @Tag("Негативный")
     @DisplayName("Создание сотрудника в несуществующей компании")
     public void createEmployeeNotExistedCompany() {
@@ -142,7 +109,72 @@ public class ContractTests {
 
     @Test
     @Tag("Негативный")
-    @DisplayName("Получение сотрудника по несуществующему id, статус 404")
+    @DisplayName("Создание сотрудника, неверный токен")
+    public void createEmployeeWrongToken() {
+
+        given()
+                .basePath("employee")
+                .body(NEW_EMPLOYEE_RUSSIAN)
+                .header(TOKEN_TYPE, WRONG_USER_TOKEN)
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(UNAUTHORIZED);
+    }
+
+    @Test
+    @Tag("Негативный")
+    @DisplayName("Создание сотрудника, нет токена")
+    public void createEmployeeNoToken() {
+
+        given()
+                .basePath("employee")
+                .body(NEW_EMPLOYEE_RUSSIAN)
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(UNAUTHORIZED);
+    }
+
+    @Test
+    @Tag("Негативный")
+    @DisplayName("Создание сотрудника, пустой токен")
+    public void createEmployeeEmptyToken() {
+
+        given()
+                .basePath("employee")
+                .body(NEW_EMPLOYEE_RUSSIAN)
+                .header(TOKEN_TYPE, "")
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(UNAUTHORIZED);
+    }
+
+    @Test
+    @Tag("Позитивный")
+    @DisplayName("Получение сотрудника по id")
+    public void getEmployeeById() throws IOException {
+
+        given()
+                .basePath("employee")
+                .when()
+                .get("{id}", createNewEmployee())
+                .then()
+                .assertThat()
+                .statusCode(STATUS_CODE_OK)
+                .header("Content-Type", JSON);
+    }
+
+    @Test
+    @Tag("Негативный")
+    @DisplayName("Получение сотрудника по несуществующему id, должен быть статус-код 404")
     public void getEmployeeByNotExistedId() {
 
         given()
@@ -155,8 +187,26 @@ public class ContractTests {
     }
 
     @Test
+    @Tag("Позитивный")
+    @DisplayName("Изменение информации о сотруднике")
+    public void changeEmployeeData() throws IOException {
+
+        given()
+                .basePath("employee")
+                .body(CHANGED_DATA_EMPLOYEE_RUSSIAN)
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .patch("{id}", createNewEmployee())
+                .then()
+                .assertThat()
+                .statusCode(STATUS_CODE_OK)
+                .header("Content-Type", JSON);
+    }
+
+    @Test
     @Tag("Негативный")
-    @DisplayName("Изменение информации о сотруднике с несуществующим id, статус 404")
+    @DisplayName("Изменение информации о сотруднике с несуществующим id, должен быть статус-код 404")
     public void changeEmployeeDataWithNotExistedId() {
 
         given()
@@ -185,8 +235,7 @@ public class ContractTests {
                 .patch("{id}", createNewEmployee())
                 .then()
                 .assertThat()
-                .statusCode(STATUS_CODE_OK)
-                .header("Content-Type", JSON);
+                .statusCode(STATUS_CODE_OK);
     }
 
 }

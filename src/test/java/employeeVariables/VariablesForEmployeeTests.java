@@ -32,7 +32,7 @@ public class VariablesForEmployeeTests {
 
     public static CreateEmployeeRequest NEGATIVE_EMPLOYEE_COMPANY_DOES_NT_EXIST = new CreateEmployeeRequest(0, "Иван", "Иванов", "Иванович", NEGATIVE_ID, "ivan@mail.ru", "ivan.ru", "1235465", "2024-08-25T11:07:11.228Z", true);
 
-    public static CreateEmployeeRequest NEW_EMPLOYEE_RUSSIAN = new CreateEmployeeRequest(0, "Иван", "Иванов", "Иванович", NEW_COMPANY, "ivan@mail.ru", "ivan.ru", "1235465", "2024-08-25T11:07:11.228Z", true);
+   
 
     public static ChangeEmployeeDataRequest CHANGED_DATA_EMPLOYEE_RUSSIAN = new ChangeEmployeeDataRequest("Петров", "petrov@mail.ru", "petrov.ru", "555554", false);
 

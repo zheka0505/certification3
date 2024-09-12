@@ -1,4 +1,4 @@
-package employeeDBConnectionClasses;
+package DBConnection;
 
 import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
@@ -29,7 +29,8 @@ public class MyPUI implements PersistenceUnitInfo {
     @Override
     public List<String> getManagedClassNames() {
         return List.of(
-                EmployeeEntity.class.getName()
+                EmployeeEntity.class.getName(),
+                CompanyEntity.class.getName()
         );
     }
 

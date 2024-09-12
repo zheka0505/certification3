@@ -1,7 +1,7 @@
 package employeeTests;
 
-import employeeDBConnectionClasses.EmployeeEntity;
-import employeeDBConnectionClasses.MyPUI;
+import DBConnection.EmployeeEntity;
+import DBConnection.MyPUI;
 import io.restassured.RestAssured;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -14,13 +14,17 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
 
-import static employeeRestAssuredMethods.APIRequests.createNewCompany;
-import static employeeRestAssuredMethods.APIRequests.createNewCompanyWithEmployees;
+import static services.DBQuery.*;
+import static services.RestAssuredRequests.createNewCompanyWithEmployees;
+
 import static employeeVariables.LoginData.getProperties;
 import static employeeVariables.LoginData.url;
+import static employeeVariables.VariablesForEmployeeTests.*;
+import static employeeVariables.VariablesForEmployeeTests.EMPLOYEE_EMAIL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,41 +34,77 @@ public class DBTests {
 
     @BeforeAll
     public static void setUp() throws IOException {
-        RestAssured.baseURI = url();
-
         Properties properties = getProperties();
         PersistenceUnitInfo pui = new MyPUI(properties);
 
         HibernatePersistenceProvider hibernatePersistenceProvider = new HibernatePersistenceProvider();
-        EntityManagerFactory entityManagerFactory = hibernatePersistenceProvider.createContainerEntityManagerFactory(pui, pui.getProperties());
-        entityManager = entityManagerFactory.createEntityManager();
+        EntityManagerFactory emf = hibernatePersistenceProvider.createContainerEntityManagerFactory(pui, pui.getProperties());
+        entityManager = emf.createEntityManager();
+
+        RestAssured.baseURI = url();
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+
     }
 
     @Test
     @Tag("Позитивный")
-    @DisplayName("Проверка списка сотрудников из БД")
+    @DisplayName("Проверка списка сотрудников")
     public void getListOfEmployeesDB() throws IOException {
         TypedQuery<EmployeeEntity> query = entityManager.createQuery("SELECT ce FROM EmployeeEntity ce WHERE ce.companyId = :companyId", EmployeeEntity.class);
         query.setParameter("companyId", createNewCompanyWithEmployees());
 
         List<EmployeeEntity> employee = query.getResultList();
 
-        assertTrue(employee.get(0).getLastName().contains("Иванов"));
-        assertTrue(employee.get(1).getLastName().contains("Ivanov"));
+        assertTrue(employee.get(0).getLastName().contains("Смирнов"));
+        assertTrue(employee.get(1).getLastName().contains("Landson"));
 
     }
 
     @Test
     @Tag("Позитивный")
-    @DisplayName("Проверка пустого списка сотрудников из БД")
+    @DisplayName("Проверка пустого списка сотрудников")
     public void getEmptyListOfEmployeesDB() throws IOException {
         TypedQuery<EmployeeEntity> query = entityManager.createQuery("SELECT ce FROM EmployeeEntity ce WHERE ce.companyId = :companyId", EmployeeEntity.class);
-        query.setParameter("companyId", createNewCompany());
+        query.setParameter("companyId", createNewCompanyDB());
 
         List<EmployeeEntity> employee = query.getResultList();
 
         assertEquals(0, employee.size());
 
     }
+
+    @Test
+    @Tag("Позитивный")
+    @DisplayName("Получение сотрудника по id, только обязательные поля")
+    public void getEmployeeByIdRequiredFields() throws IOException {
+
+        EmployeeEntity employeeFromDB = getEmployeeByIdDB(createEmployeeDB(new EmployeeEntity(), russianDB).getId());
+
+        assertEquals(RUSSIAN_NAME, employeeFromDB.getFirstName());
+        assertEquals(RUSSIAN_LASTNAME, employeeFromDB.getLastName());
+        assertEquals(EMPLOYEE_PHONE, employeeFromDB.getPhone());
+        assertTrue(employeeFromDB.isActive());
+
+    }
+
+    @Test
+    @Tag("Позитивный")
+    @DisplayName("Получение сотрудника, заполнены все поля")
+    public void getEmployeeFullData() throws IOException {
+
+        EmployeeEntity employeeFromDB = getEmployeeByIdDB(createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId());
+
+        String toStringBirthday = new SimpleDateFormat("yyyy-MM-dd").format(employeeFromDB.getBirthdate());
+
+        assertEquals(RUSSIAN_NAME, employeeFromDB.getFirstName());
+        assertEquals(RUSSIAN_LASTNAME, employeeFromDB.getLastName());
+        assertEquals(EMPLOYEE_PHONE, employeeFromDB.getPhone());
+        assertEquals(RUSSIAN_MIDDLE_NAME, employeeFromDB.getMiddleName());
+        assertEquals(EMPLOYEE_BIRTHDAY, toStringBirthday);
+        assertEquals(EMPLOYEE_URL, employeeFromDB.getAvatar_url());
+        assertEquals(EMPLOYEE_EMAIL, employeeFromDB.getEmail());
+
+    }
+
 
 }

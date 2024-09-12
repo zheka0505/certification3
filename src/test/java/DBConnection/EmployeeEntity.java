@@ -1,9 +1,6 @@
-package employeeDBConnectionClasses;
+package DBConnection;
 
 import jakarta.persistence.*;
-
-
-
 import java.sql.Date;
 import java.util.Objects;
 

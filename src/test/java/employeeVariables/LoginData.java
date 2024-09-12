@@ -1,10 +1,9 @@
 package employeeVariables;
 
-import employeeDataClasses.AuthRequest;
+import model.AuthRequest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Properties;
 
 public class LoginData {
@@ -19,8 +18,7 @@ public class LoginData {
     }
 
     public static Properties getProperties() throws IOException {
-        String rootPath = Objects.requireNonNull(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource(""))).getPath();
-        String appConfigPath = rootPath + "env.properties";
+        String appConfigPath = "src/test/resources/env.properties";
 
         Properties properties = new Properties();
         properties.load(new FileInputStream(appConfigPath));

@@ -1,4 +1,4 @@
-package employeeDataClasses;
+package model;
 
 public record CreateEmployeeResponse(int id) {
 }

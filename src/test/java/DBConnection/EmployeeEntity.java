@@ -1,12 +1,13 @@
 package DBConnection;
 
 import jakarta.persistence.*;
+
 import java.sql.Date;
 import java.util.Objects;
 
 
 @Entity
-@Table(name = "employee", schema = "public", catalog = "x_clients_fxd0")
+@Table(name = "employee", schema = "public", catalog = "x_clients_db_75hr")
 
 public class EmployeeEntity {
     @Id
@@ -15,11 +16,11 @@ public class EmployeeEntity {
     private int id;
     @Column(name = "is_active")
     private boolean isActive;
-    @Column (name = "first_name")
+    @Column(name = "first_name")
     private String firstName;
-    @Column (name = "last_name")
+    @Column(name = "last_name")
     private String lastName;
-    @Column (name = "middle_name")
+    @Column(name = "middle_name")
     private String middleName;
     @Column
     private String phone;
@@ -29,7 +30,7 @@ public class EmployeeEntity {
     private Date birthdate;
     @Column
     private String avatar_url;
-    @Column (name = "company_id")
+    @Column(name = "company_id")
     private int companyId;
 
     public int getId() {

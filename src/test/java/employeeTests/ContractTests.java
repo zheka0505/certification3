@@ -26,7 +26,7 @@ public class ContractTests {
     }
 
     @BeforeAll
-    public static void setUp() throws IOException {
+    public static void setUp() {
         RestAssured.baseURI = url();
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
@@ -35,7 +35,7 @@ public class ContractTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение списка сотрудников")
-    public void getListOfEmployees(){
+    public void getListOfEmployees() {
 
         given()
                 .queryParam("company", NEW_COMPANY)
@@ -79,11 +79,11 @@ public class ContractTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Создание сотрудника, данные русские")
-    public void createEmployee() throws IOException {
+    public void createEmployee() {
 
         given()
                 .basePath("employee")
-                .body(createEmployeeRequest(new CreateEmployeeRequest(),russian))
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), russian))
                 .header(TOKEN_TYPE, info.userToken())
                 .contentType(ContentType.JSON)
                 .when()
@@ -97,7 +97,7 @@ public class ContractTests {
     @Test
     @Tag("Негативный")
     @DisplayName("Создание сотрудника в несуществующей компании")
-    public void createEmployeeNotExistedCompany() throws IOException {
+    public void createEmployeeNotExistedCompany() {
 
         given()
                 .basePath("employee")
@@ -113,12 +113,29 @@ public class ContractTests {
 
     @Test
     @Tag("Негативный")
-    @DisplayName("Создание сотрудника, неверный токен")
-    public void createEmployeeWrongToken() throws IOException {
+    @DisplayName("Создание сотрудника значения больше граничных")
+    public void createEmployeeMoreBoundaryValues() {
 
         given()
                 .basePath("employee")
-                .body(createEmployeeRequest(new CreateEmployeeRequest(),russian))
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), fieldsMoreThanMax))
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(STATUS_CODE_INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    @Tag("Негативный")
+    @DisplayName("Создание сотрудника, неверный токен")
+    public void createEmployeeWrongToken() {
+
+        given()
+                .basePath("employee")
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), russian))
                 .header(TOKEN_TYPE, WRONG_USER_TOKEN)
                 .contentType(ContentType.JSON)
                 .when()
@@ -131,11 +148,11 @@ public class ContractTests {
     @Test
     @Tag("Негативный")
     @DisplayName("Создание сотрудника, нет токена")
-    public void createEmployeeNoToken() throws IOException {
+    public void createEmployeeNoToken() {
 
         given()
                 .basePath("employee")
-                .body(createEmployeeRequest(new CreateEmployeeRequest(),russian))
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), russian))
                 .contentType(ContentType.JSON)
                 .when()
                 .post()
@@ -147,11 +164,11 @@ public class ContractTests {
     @Test
     @Tag("Негативный")
     @DisplayName("Создание сотрудника, пустой токен")
-    public void createEmployeeEmptyToken() throws IOException {
+    public void createEmployeeEmptyToken() {
 
         given()
                 .basePath("employee")
-                .body(createEmployeeRequest(new CreateEmployeeRequest(),russian))
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), russian))
                 .header(TOKEN_TYPE, "")
                 .contentType(ContentType.JSON)
                 .when()
@@ -164,7 +181,7 @@ public class ContractTests {
     @Test
     @Tag("Негативный")
     @DisplayName("Создание сотрудника, неверный формат email")
-    public void createEmployeeIncorrectEmail() throws IOException {
+    public void createEmployeeIncorrectEmail() {
 
         given()
                 .basePath("employee")
@@ -181,7 +198,7 @@ public class ContractTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника по id")
-    public void getEmployeeById() throws IOException {
+    public void getEmployeeById() {
 
         given()
                 .basePath("employee")
@@ -193,6 +210,7 @@ public class ContractTests {
                 .header("Content-Type", JSON);
     }
 
+    //в свагере сказано, что Сотрудник не найден - 404, а выходит 500
     @Test
     @Tag("Негативный")
     @DisplayName("Получение сотрудника по несуществующему id, должен быть статус-код 404")
@@ -210,7 +228,7 @@ public class ContractTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Изменение информации о сотруднике")
-    public void changeEmployeeData() throws IOException {
+    public void changeEmployeeData() {
 
         given()
                 .basePath("employee")
@@ -225,10 +243,11 @@ public class ContractTests {
                 .header("Content-Type", JSON);
     }
 
+    //в свагере сказано, что Сотрудник не найден - 404, а выходит 500
     @Test
     @Tag("Негативный")
     @DisplayName("Изменение информации о сотруднике с несуществующим id, должен быть статус-код 404")
-    public void changeEmployeeDataWithNotExistedId() throws IOException {
+    public void changeEmployeeDataWithNotExistedId() {
 
         given()
                 .basePath("employee")
@@ -245,7 +264,7 @@ public class ContractTests {
     @Test
     @Tag("Негативный")
     @DisplayName("Изменение всей информации о сотруднике")
-    public void changeAllEmployeeData() throws IOException {
+    public void changeAllEmployeeData() {
 
         given()
                 .basePath("employee")
@@ -257,6 +276,24 @@ public class ContractTests {
                 .then()
                 .assertThat()
                 .statusCode(STATUS_CODE_OK);
+    }
+
+    @Test
+    @Tag("Негативный")
+    @DisplayName("Изменение информации о сотруднике, некорректный емейл")
+    public void changeEmployeeDataIncorrectEmail() {
+
+        given()
+                .basePath("employee")
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), incorrectEmail))
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .patch("{id}", createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId())
+                .then()
+                .assertThat()
+                .statusCode(BAD_REQUEST);
+
     }
 
 }

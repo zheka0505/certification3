@@ -33,7 +33,7 @@ public class DBTests {
     private static EntityManager entityManager;
 
     @BeforeAll
-    public static void setUp() throws IOException {
+    public static void setUp(){
         Properties properties = getProperties();
         PersistenceUnitInfo pui = new MyPUI(properties);
 
@@ -76,7 +76,7 @@ public class DBTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника по id, только обязательные поля")
-    public void getEmployeeByIdRequiredFields() throws IOException {
+    public void getEmployeeByIdRequiredFields(){
 
         EmployeeEntity employeeFromDB = getEmployeeByIdDB(createEmployeeDB(new EmployeeEntity(), russianDB).getId());
 
@@ -90,7 +90,7 @@ public class DBTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника, заполнены все поля")
-    public void getEmployeeFullData() throws IOException {
+    public void getEmployeeFullData(){
 
         EmployeeEntity employeeFromDB = getEmployeeByIdDB(createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId());
 

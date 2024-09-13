@@ -18,12 +18,11 @@ import static employeeVariables.LoginData.getProperties;
 import static employeeVariables.VariablesForEmployeeTests.*;
 
 
-
 public class DBQuery {
 
     private static EntityManager entityManager;
 
-    public static void connectionDB() throws IOException {
+    public static void connectionDB() {
         Properties properties = getProperties();
         PersistenceUnitInfo pui = new MyPUI(properties);
 
@@ -48,7 +47,7 @@ public class DBQuery {
         @Override
         public EmployeeEntity apply(EmployeeEntity e) {
             e.setFirstName(LATIN_NAME);
-            e.setLastName(LATIN_LASTNAME );
+            e.setLastName(LATIN_LASTNAME);
             e.setCompanyId(NEW_COMPANY);
             e.setPhone(EMPLOYEE_PHONE);
             e.setActive(true);
@@ -85,7 +84,7 @@ public class DBQuery {
         }
     };
 
-    public static EmployeeEntity createEmployeeDB(EmployeeEntity employee, Function<EmployeeEntity, EmployeeEntity> rule) throws IOException {
+    public static EmployeeEntity createEmployeeDB(EmployeeEntity employee, Function<EmployeeEntity, EmployeeEntity> rule) {
         connectionDB();
 
         rule.apply(employee);
@@ -109,7 +108,7 @@ public class DBQuery {
         return newCompany.getId();
     }
 
-    public static EmployeeEntity getEmployeeByIdDB(int employeeID) throws IOException {
+    public static EmployeeEntity getEmployeeByIdDB(int employeeID) {
 
         connectionDB();
         return entityManager.find(EmployeeEntity.class, employeeID);

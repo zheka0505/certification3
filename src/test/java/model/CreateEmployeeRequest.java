@@ -14,6 +14,7 @@ public class CreateEmployeeRequest {
     private String birthdate;
     private boolean isActive;
 
+
     public CreateEmployeeRequest() {
     }
 
@@ -93,8 +94,8 @@ public class CreateEmployeeRequest {
         return isActive;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setActive(boolean a) {
+        isActive = a;
     }
 
     @Override

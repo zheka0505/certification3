@@ -6,10 +6,7 @@ import model.CreateEmployeeRequest;
 import model.CreateEmployeeResponse;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -35,12 +32,12 @@ public class BusinessTests {
     }
 
     @BeforeAll
-    public static void setUp() throws IOException {
+    public static void setUp() {
         RestAssured.baseURI = url();
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
-    //тест не пройдет, бага емейл не сохраняется в базу
+    //тест не пройдет, баг емейл не сохраняется в базу
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение списка сотрудников")
@@ -83,7 +80,7 @@ public class BusinessTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Создание сотрудника, данные на русском")
-    public void createEmployeeRussian() throws IOException {
+    public void createEmployeeRussian() {
 
         int newEmployeeId = given()
                 .basePath("employee")
@@ -105,7 +102,7 @@ public class BusinessTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Создание сотрудника, данные латиницей")
-    public void createEmployeeLatin() throws IOException {
+    public void createEmployeeLatin() {
 
         int newEmployeeId = given()
                 .basePath("employee")
@@ -122,11 +119,11 @@ public class BusinessTests {
         assertEquals(LATIN_LASTNAME, employeeFromDB.getLastName());
     }
 
-    //тест не пройдет, бага емейл не сохраняется в базу
+    //тест не пройдет, баг емейл не сохраняется в базу
     @Test
     @Tag("Позитивный")
     @DisplayName("Создание сотрудника, заполнены все поля")
-    public void createEmployeeFullData() throws IOException {
+    public void createEmployeeFullData() {
 
         int newEmployeeId = given()
                 .basePath("employee")
@@ -146,13 +143,37 @@ public class BusinessTests {
         assertEquals(EMPLOYEE_URL, employeeFromDB.getAvatar_url());
         assertEquals(EMPLOYEE_EMAIL, employeeFromDB.getEmail());
 
+    }
+
+    @Test
+    @Tag("Позитивный")
+    @DisplayName("Создание сотрудника, граничные значения")
+    public void createEmployeeBoundaryValues() {
+
+        int newEmployeeId = given()
+                .basePath("employee")
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), fullFieldsMax))
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .post()
+                .as(CreateEmployeeResponse.class).id();
+
+        EmployeeEntity employeeFromDB = getEmployeeByIdDB(newEmployeeId);
+
+
+        assertEquals(CHARACTERS_20, employeeFromDB.getFirstName());
+        assertEquals(CHARACTERS_20, employeeFromDB.getLastName());
+        assertEquals(CHARACTERS_15, employeeFromDB.getPhone());
+        assertEquals(CHARACTERS_20, employeeFromDB.getMiddleName());
+
 
     }
 
     @Test
     @Tag("Позитивный")
     @DisplayName("Создание сотрудника, данные спецсимволы")
-    public void createEmployeeSpecialCharacters() throws IOException {
+    public void createEmployeeSpecialCharacters() {
 
         int newEmployeeId = given()
                 .basePath("employee")
@@ -173,7 +194,7 @@ public class BusinessTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника с полными данными")
-    public void getEmployeeFullData() throws IOException {
+    public void getEmployeeFullData() {
 
         given()
                 .basePath("employee")
@@ -194,7 +215,7 @@ public class BusinessTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника с данными латиницей")
-    public void getEmployeeLatinData() throws IOException {
+    public void getEmployeeLatinData() {
 
         given()
                 .basePath("employee")
@@ -211,7 +232,7 @@ public class BusinessTests {
     @Test
     @Tag("Позитивный")
     @DisplayName("Получение сотрудника со спецсимволами")
-    public void getEmployeeSpecialCharacters() throws IOException {
+    public void getEmployeeSpecialCharacters() {
 
         given()
                 .basePath("employee")
@@ -226,27 +247,71 @@ public class BusinessTests {
 
     }
 
+    // баг: телефон не меняется патчем
     @Test
     @Tag("Позитивный")
     @DisplayName("Изменение информации о сотруднике")
-    public void changeEmployeeData() throws IOException {
+    public void changeEmployeeData() {
 
-        CreateEmployeeRequest s = createEmployeeRequest(new CreateEmployeeRequest(), employeeChange);
-
-        System.out.println(s);
+        int newEmployeeId = createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId();
         given()
                 .basePath("employee")
-                .body(s)
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), employeeChange))
                 .header(TOKEN_TYPE, info.userToken())
                 .contentType(ContentType.JSON)
                 .when()
-                .patch("{id}", createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId())
+                .patch("{id}", newEmployeeId)
                 .then()
-                .body("isActive", equalTo(false))
+                .body("url", equalTo(EMPLOYEE_CHANGED_URL))
+                .body("email", equalTo(EMPLOYEE_CHANGED_EMAIL))
+                .body("isActive", equalTo(true));
+
+
+        EmployeeEntity employeeFromDB = getEmployeeByIdDB(newEmployeeId);
+
+        String toStringBirthday = new SimpleDateFormat("yyyy-MM-dd").format(employeeFromDB.getBirthdate());
+
+        assertEquals(RUSSIAN_NAME, employeeFromDB.getFirstName());
+        assertEquals(CHANGED_LASTNAME, employeeFromDB.getLastName());
+        assertTrue(employeeFromDB.isActive());
+        assertEquals(RUSSIAN_MIDDLE_NAME, employeeFromDB.getMiddleName());
+        assertEquals(EMPLOYEE_BIRTHDAY, toStringBirthday);
+        assertEquals(EMPLOYEE_CHANGED_URL, employeeFromDB.getAvatar_url());
+        assertEquals(EMPLOYEE_CHANGED_EMAIL, employeeFromDB.getEmail());
+        assertEquals(EMPLOYEE_CHANGED_PHONE, employeeFromDB.getPhone());
+
+    }
+
+    // баг: телефон не меняется патчем
+    @Test
+    @Tag("Позитивный")
+    @DisplayName("Изменение информации о сотруднике спецсимволы")
+    public void changeEmployeeSpecialCharacters() {
+
+        int newEmployeeId = createEmployeeDB(new EmployeeEntity(), fullFieldsRussianDB).getId();
+        given()
+                .basePath("employee")
+                .body(createEmployeeRequest(new CreateEmployeeRequest(), specialCharacters))
+                .header(TOKEN_TYPE, info.userToken())
+                .contentType(ContentType.JSON)
+                .when()
+                .patch("{id}", newEmployeeId)
+                .then()
                 .body("url", equalTo(EMPLOYEE_CHANGED_URL))
                 .body("email", equalTo(EMPLOYEE_CHANGED_EMAIL));
 
+        EmployeeEntity employeeFromDB = getEmployeeByIdDB(newEmployeeId);
 
+        String toStringBirthday = new SimpleDateFormat("yyyy-MM-dd").format(employeeFromDB.getBirthdate());
+
+        assertEquals(RUSSIAN_NAME, employeeFromDB.getFirstName());
+        assertEquals(SPECIAL_CHARACTERS, employeeFromDB.getLastName());
+        assertTrue(employeeFromDB.isActive());
+        assertEquals(RUSSIAN_MIDDLE_NAME, employeeFromDB.getMiddleName());
+        assertEquals(EMPLOYEE_BIRTHDAY, toStringBirthday);
+        assertEquals(EMPLOYEE_CHANGED_URL, employeeFromDB.getAvatar_url());
+        assertEquals(EMPLOYEE_CHANGED_EMAIL, employeeFromDB.getEmail());
+        assertEquals(EMPLOYEE_CHANGED_PHONE, employeeFromDB.getPhone());
 
 
     }

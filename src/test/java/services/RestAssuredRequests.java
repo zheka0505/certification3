@@ -13,7 +13,7 @@ import static io.restassured.RestAssured.given;
 
 public class RestAssuredRequests {
 
-    public static AuthResponse auth() throws IOException {
+    public static AuthResponse auth(){
 
         return given()
                 .basePath("/auth/login")
@@ -30,10 +30,10 @@ public class RestAssuredRequests {
 
         int newCompanyId = createNewCompanyDB();
 
-        CreateEmployeeRequest russianEmployeeName = createEmployeeRequest(new CreateEmployeeRequest(),fullFieldsRussian);
+        CreateEmployeeRequest russianEmployeeName = createEmployeeRequest(new CreateEmployeeRequest(), fullFieldsRussian);
         russianEmployeeName.setCompanyId(newCompanyId);
 
-        CreateEmployeeRequest latinEmployeeName = createEmployeeRequest(new CreateEmployeeRequest(),latin);
+        CreateEmployeeRequest latinEmployeeName = createEmployeeRequest(new CreateEmployeeRequest(), latin);
         latinEmployeeName.setCompanyId(newCompanyId);
 
 
